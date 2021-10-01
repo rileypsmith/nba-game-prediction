@@ -1,0 +1,15 @@
+*.docx
+
+Exclude data files
+*.hdf5
+*.csv
+*.db
+*.json
+*.txt
+
+Exclude pycache
+**/__pycache__
+__pycache__
+
+Random Data Script for testing things
+data/data.py
