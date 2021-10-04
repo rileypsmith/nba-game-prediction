@@ -5,7 +5,6 @@ A random forest classifier for predicting the outcome of NBA games.
 Created: 8-18-2021
 """
 import numpy as np
-from scipy.signal import convolve2d as Conv2D
 from sklearn.ensemble import RandomForestClassifier as Forest
 from sklearn.metrics import f1_score
 
