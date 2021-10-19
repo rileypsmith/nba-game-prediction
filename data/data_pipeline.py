@@ -5,7 +5,11 @@ player focused perspective. As a result, is much simpler and easier to read.
 @author: Riley Smith
 Created: 9-30-2021
 """
+from datetime import datetime
+
 import pandas as pd
+import sklearn
+from sklearn.pipeline import Pipeline
 
 from team_based_game import TEAM_ABBREVIATIONS
 TEAM_ABBREVIATIONS += ['BRK', 'CHO', 'NOP']
@@ -16,26 +20,124 @@ class NBADataPipeline():
     it, like preprocessing/transforming it and running cross validation on a
     classifier.
     """
-    def __init__(self, data_csv):
-        self.data = self._load_data(data_csv)
+    def __init__(self, data_csv, use_pca=True, pca_components=10, scale_data=True,
+                    delete_first_ten=False, holdout_year=None):
+        self._X, self._y, self._X_test, self._y_test, self._meta = self._load_data(data_csv, delete_first_ten, holdout_year)
 
-    def _load_data(self, data_csv):
+        self._pipeline = self._gen_pipeline(use_pca=use_pca,
+                                            pca_components=pca_components,
+                                            scale_data=scale_data)
+
+    def _load_data(self, data_csv, delete_first_ten, holdout_year):
         """
         Load the data from a csv file. Just return the X and y, splitting into
         train and test data will be handled elsewhere.
         """
         # Load the data
         data = pd.read_csv(data_csv, index_col=0)
+        # If deleting first ten games, get rid of all games where last_10 is
+        # equal to last_15
+        if delete_first_ten:
+            data = data[data['home_points_last_15'] != data['home_points_last_10']]
         # Turn truth (HOME/AWAY) into binary outcome variable
         data['outcome'] = data.apply(lambda x: 0 if x['winner'] == 'Away' else 1, axis=1)
         # Convert datetime string to datetime objects
-        data['datetime'] = pd.to_datetime(data['datetime'], format='%Y-%m-%d')
-        return data.drop('winner', axis=1)
+        data['date'] = pd.to_datetime(data['date'], format='%Y-%m-%d')
+        # If a holdout year is given, split that data off
+        if holdout_year is not None:
+            season_start = datetime(holdout_year, 10, 1)
+            season_end = datetime(holdout_year + 1, 7, 1)
+            holdout = data[(data['date'] < season_end)
+                            & (data['date'] > season_start)]
+            data = data[(data['date'] > season_end)
+                            | (data['date'] < season_start)]
+            y_test = holdout['outcome']
+            X_test = holdout.drop(['winner', 'outcome', 'home_team', 'away_team', 'date'], axis=1)
+            X_test = X_test.fillna(0)
+            # Make them ndarrays
+            y_test = y_test.to_numpy()
+            X_test = X_test.to_numpy()
+        else:
+            X_test = None
+            y_test = None
+        # Split into X, y, and meta
+        y = data['outcome']
+        meta = data[['home_team', 'away_team', 'date']]
+        X = data.drop(['winner', 'outcome', 'home_team', 'away_team', 'date'], axis=1)
+        # Take care of any NaN values
+        X = X.fillna(0)
+        return X.to_numpy(), y.to_numpy(), X_test, y_test, meta
 
-    def _preprocess_data(self):
-        """Generate new features in the data that can be used for analysis."""
-        raise NotImplementedError('Method not implemented.')
+    def _gen_pipeline(self, use_pca=True, pca_components=10, scale_data=True):
+        """
+        Using the options provided, produce an Sklearn data pipeline object
+        that can be fit to the data and later used to transform data at test
+        time.
 
-    def _scale(self):
-        """Scale the data, in place"""
-        raise NotImplementedError('Method not implemented.')
+        Parameters
+        ----------
+        use_pca : bool
+            Whether or not to run PCA on the data.
+        pca_components : int
+            How many components to use for PCA (irrelevant if use_pca is False).
+        scale_data : bool
+            Whether or not to do mean/standard deviation scaling of each feature.
+
+        Returns
+        -------
+        Sklearn pipeline instance.
+        """
+        # Make list of preprocessing elements in pipeline
+        pipeline_components = []
+        if scale_data:
+            scaler = sklearn.preprocessing.StandardScaler()
+            pipeline_components.append(('Standard Scaler', scaler))
+        if use_pca:
+            pca = sklearn.decomposition.PCA(pca_components)
+            pipeline_components.append(('PCA', pca))
+        return sklearn.pipeline.Pipeline(pipeline_components)
+
+    def fit_pipeline(self):
+        """Fit the pipeline to all the training data and pre-process test data"""
+        self._X = self._pipeline.fit_transform(self._X)
+        if self._X_test is not None:
+            self._X_test = self._pipeline.transform(self._X_test)
+
+    def yield_kfolds(self, k):
+        """Yield k folds for cross validation"""
+        # Build KFold sklearn object
+        kf = sklearn.model_selection.KFold(n_splits=k)
+        # For each fold, preprocess data and then yield it
+        for train_indices, test_indices in kf.split(self._X):
+            # Grab train and test data and labels
+            X_train, X_test = self._X[train_indices], self._X[test_indices]
+            y_train, y_test = self._y[train_indices], self._y[test_indices]
+            # Fit preprocessor to training data
+            X_train = self._pipeline.fit_transform(X_train)
+            # Transform test data
+            X_test = self._pipeline.transform(X_test)
+            # Yield it
+            yield (X_train, X_test, y_train, y_test)
+
+    @property
+    def data(self):
+        """Getter for returning all the data"""
+        return self._X, self._y
+
+    @property
+    def train_data(self):
+        """
+        Getter for returning the training data (X and y, does the same thing as
+        the getter for just data).
+        """
+        return self._X, self._y
+
+    @property
+    def test_data(self):
+        """
+        Return the data for the holdout season if there is any, otherwise return
+        None.
+        """
+        if self._X_test is not None:
+            return self._X_test, self._y_test
+        return None
