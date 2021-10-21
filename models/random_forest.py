@@ -13,13 +13,12 @@ from sklearn.model_selection import GridSearchCV
 from sklearn import metrics
 from tqdm import tqdm
 
-import utils
+import evaluation as eval
 
 import sys
 sys.path.append('../data')
 sys.path.append('../visualization')
 from data_pipeline import NBADataPipeline
-# import utils as data_utils
 from roc_curve import plot_roc, plot_kfolds_roc
 
 # Build random forest classifier
@@ -52,7 +51,7 @@ plot_kfolds_roc(running_fpr, running_tpr)
 ############################################################
 
 # Build custom model evaluation based on false positive rate
-fpr_eval = utils.FixedFPREvaluation(0.15)
+fpr_eval = eval.FixedFPREvaluation(0.15)
 
 # Make dictionary to store output results
 grid_search_results = {}
@@ -70,7 +69,7 @@ for k in range(10, 110, 10):
     print('\n\nWorking on', k, 'components...\n')
     # Get data for this particular PCA projection
     data_pipeline = NBADataPipeline(data_csv, pca_components=k, delete_first_ten=True)
-    X, y = data_pipeline.data
+    X, y = data_pipeline.train_data
     # For each PCA value, do a grid search to find best Random Forest parameters
     forest = Forest()
     clf = GridSearchCV(forest, params, scoring=fpr_eval, verbose=2)
@@ -127,7 +126,7 @@ plot_roc(fpr, tpr, thresholds)
 # Now make an accuracy plot
 accuracies = []
 for threshold in np.linspace(0, 1, 100):
-    accuracies.append(utils.ThresholdedAccuracy(threshold)(clf, X_test, y_test))
+    accuracies.append(eval.ThresholdedAccuracy(threshold)(clf, X_test, y_test))
 fig, ax = plt.subplots(figsize=(6,6))
 ax.plot(accuracies)
 plt.show()

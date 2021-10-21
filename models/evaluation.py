@@ -1,5 +1,5 @@
 """
-Utils for building models.
+Custom model evaluation methods.
 
 @author: Riley Smith
 Created: 10-17-2021
@@ -8,11 +8,20 @@ import numpy as np
 from sklearn import metrics
 
 class FixedFPREvaluation():
+    """
+    Class for evaluating classifier based on a fixed tolerable false alarm rate.
+
+    The evaluation metric in this case is the percentage of retained true
+    positives at or below the tolerable false alarm rate. Higher values are
+    better. This class is intended to be used as the scoring function for
+    Sklearn's GridSearchCV.
+    """
     def __init__(self, fpr):
         """
-        Given a set false positive rate (fpr), evaluate the model based on how
-        many true positives it gets while staying below that false positive
-        rate.
+        Parameters
+        ----------
+        fpr : float
+            The tolerable false alarm rate (between 0 and 1).
         """
         self._fpr = fpr
 
@@ -46,9 +55,17 @@ class FixedFPREvaluation():
 
 class ThresholdedAccuracy():
     """
-    Evaluate a classifier based on its accuracy above a certain threshold.
+    Evaluate a classifier based on its accuracy above a certain predicted
+    probability threshold.
     """
     def __init__(self, threshold):
+        """
+        Parameters
+        ----------
+        threshold : float
+            The predicted probability threshold above which you will actually
+            make a call on a game. Should be in the range (0,1).
+        """
         self._threshold = threshold
 
     def __call__(self, estimator, X, y):

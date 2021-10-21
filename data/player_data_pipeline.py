@@ -2,6 +2,10 @@
 An all-encompassing NBA game data pipeline for serving up data from the hdf5
 file.
 
+NOTE (10-21-21): This was originally written intending to use player-level data
+as the focus. It has now been replaced by one focusing on team level data (see
+data_pepline.py).
+
 @author: Riley Smith
 Created: 8-14-2021
 """

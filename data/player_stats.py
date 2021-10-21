@@ -2,6 +2,9 @@
 A class-based way to store all the information for a single game so it can
 easily be batched for analysis.
 
+NOTE (10-21-21): This focuses on stats for individual players. I have since
+moved to focusing on team stats due to poor performance of this model.
+
 @author: Riley Smith
 Created: 5-27-2021
 """

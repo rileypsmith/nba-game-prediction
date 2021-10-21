@@ -53,7 +53,7 @@ TEAM_ABBREVIATIONS = ['ATL',
                      'UTA',
                      'WAS']
 
-def build_dataset(year, output_file='data/games.csv', resume=True):
+def build_dataset(year, output_csv='data/games.csv', resume=True):
     """
     Build a dataset for the given year using the sportsipy api. The dataset will
     consist of team, instead of player, statistics.
@@ -63,7 +63,7 @@ def build_dataset(year, output_file='data/games.csv', resume=True):
     year : str
         The year to get data for. Should be the year that the season ended.
         For instance, '2021' would get data for the '2020-21' season.
-    output_file : str or os.pathlike
+    output_csv : str or os.pathlike
         The path to where output should be stored (should be a .csv file).
     resume : bool
         If True, will load the list of games already processed and start from
@@ -104,11 +104,11 @@ def build_dataset(year, output_file='data/games.csv', resume=True):
         if game_data:
             season_data = pd.concat(game_data, axis=0)
             # Append it to the csv file
-            output_file = Path(output_file)
-            if not output_file.exists():
-                season_data.to_csv(str(output_file), mode='w+', header=True)
+            output_csv = Path(output_csv)
+            if not output_csv.exists():
+                season_data.to_csv(str(output_csv), mode='w+', header=True)
             else:
-                season_data.to_csv(str(output_file), mode='a', header=False)
+                season_data.to_csv(str(output_csv), mode='a', header=False)
             # Reset game data for next team
             game_data = []
         # Save checkpoint by writing the done list to json
@@ -125,7 +125,29 @@ def fix_old_team_abbrs(data_csv):
     data.to_csv(data_csv)
 
 def get_last_n_features(data_csv, n_values, output_csv=None, keep_original=False):
-    """Average features over the last n games"""
+    """
+    Get the average of features over the last 'n' games leading up to each game.
+
+    Parameters
+    ----------
+    data_csv : str or os.pathlike
+        The path to the .csv file containing all the necessary data.
+    n_values : list or int
+        If list, will separately compute the feature average over the last 'n'
+        games for each value 'n' in the list. If an int, will compute it just
+        for that value of 'n'.
+    output_csv : str or os.pathlike
+        The path to write the output data to. If None, uses the same as the
+        input CSV.
+    keep_original : bool
+        If True, keep the data as it originally was and just concatenate the
+        last 'n' data. If False, use only the last 'n' data and discard the
+        original data.
+
+    Returns
+    -------
+    None. Just writes the new output to csv.
+    """
     # Make n a list if it comes in as an int
     if not isinstance(n_values, list):
         n_values = [n_values]
@@ -211,11 +233,13 @@ def get_last_n_features(data_csv, n_values, output_csv=None, keep_original=False
     else:
         final_out_df.to_csv(data_csv)
 
-def get_team_abbreviations():
+def label_home_team(data_csv, output_csv=None):
     """
     Loop through the data and add home team and away team columns retrospectively.
     """
-    existing_data = pd.read_csv('data/games.csv', index_col=0)
+    if output_csv = None:
+        output_csv = data_csv
+    existing_data = pd.read_csv(data_csv, index_col=0)
     # Set new columns
     existing_data['home_team'] = ['none']*existing_data.index.size
     existing_data['away_team'] = ['none']*existing_data.index.size
@@ -251,14 +275,13 @@ def get_team_abbreviations():
                     print(repr(e))
                     pass
                 done.append(boxscore_index)
-    existing_data.to_csv('data/games2.csv')
+    existing_data.to_csv(output_csv)
 
 if __name__ == '__main__':
-    # for season in range(2017, 2022, 1):
-    #     build_dataset(season, resume=True)
-    # seasons = list(range(2010, 2022, 1))
-    # for season in seasons:
-    #     build_dataset(season)
-    # get_team_abbreviations()
-    # fix_old_team_abbrs('data/games2.csv')
-    get_last_n_features('data/games2.csv', [5, 10, 15], output_csv='data/data.csv')
+    seasons = list(range(2010, 2022, 1))
+    output_csv = 'data/games.csv'
+    for season in seasons:
+        build_dataset(season, output_csv=output_csv)
+    label_home_team(output_csv)
+    fix_old_team_abbrs(output_csv)
+    get_last_n_features(output_csv, [5, 10, 15], output_csv='data/data.csv')

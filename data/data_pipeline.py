@@ -22,6 +22,27 @@ class NBADataPipeline():
     """
     def __init__(self, data_csv, use_pca=True, pca_components=10, scale_data=True,
                     delete_first_ten=False, holdout_year=None):
+        """
+        Parameters
+        ----------
+        data_csv : str or os.pathlike
+            The path to the CSV file containing data.
+        use_pca : bool
+            Whether or not to use PCA in order to reduce the dimensionality of
+            the data.
+        pca_components : int
+            The number of principal components to retain in PCA.
+        scale_data : bool
+            Whether or not to apply standard scaling to data input (recommended
+            to be True).
+        delete_first_ten : bool
+            If True, ignore first 10 games of each season (as a data warmup).
+        holdout_year : int
+            Optional year to withold as test data. If given, all games in that
+            season become test data and the train data does not include any of
+            those games. Year provided is when season started (i.e. year=2020
+            would be the 2020-21 season).
+        """
         self._X, self._y, self._X_test, self._y_test, self._meta = self._load_data(data_csv, delete_first_ten, holdout_year)
 
         self._pipeline = self._gen_pipeline(use_pca=use_pca,
@@ -118,11 +139,6 @@ class NBADataPipeline():
             X_test = self._pipeline.transform(X_test)
             # Yield it
             yield (X_train, X_test, y_train, y_test)
-
-    @property
-    def data(self):
-        """Getter for returning all the data"""
-        return self._X, self._y
 
     @property
     def train_data(self):

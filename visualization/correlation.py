@@ -31,10 +31,8 @@ def show_correlations(data, saveas=None):
     ax.set_yticks(np.arange(working_data.columns.size))
     ax.set_xticklabels(working_data.columns, fontsize=8, rotation=90)
     ax.set_yticklabels(working_data.columns, fontsize=8)
-    # ax.tick_params(axis='x', labelsize=10)
-    # ax.xticks(fontsize=8, rotation=90)
-    # ax.yticks(fontsize=8)
     plt.colorbar(im, ax=ax)
+    # Optionally save it
     if saveas is not None:
         plt.savefig(saveas)
     else:
