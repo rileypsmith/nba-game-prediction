@@ -19,6 +19,9 @@ def plot_roc(fpr, tpr, thresholds, saveas=None):
     # Plot ROC points
     ax.plot(fpr, tpr, color='orange', label='ROC')
     ax.plot(fpr, thresholds, color='crimson', linestyle='dotted', label='Thresholds')
+    # Set axes labels
+    ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
     # Make legend
     plt.legend()
     # Optionally save it
@@ -41,6 +44,9 @@ def plot_kfolds_roc(fpr, tpr, saveas=None):
     # Plot results for each fold
     for fpr_fold, tpr_fold in zip(fpr, tpr):
         ax.plot(fpr_fold, tpr_fold, color='navajowhite')
+    # Set axes labels
+    ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
     # Make legend
     plt.legend()
     if saveas is not None:

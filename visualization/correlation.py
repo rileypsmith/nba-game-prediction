@@ -33,6 +33,7 @@ def show_correlations(data, saveas=None):
     ax.set_yticklabels(working_data.columns, fontsize=8)
     plt.colorbar(im, ax=ax)
     # Optionally save it
+    plt.tight_layout()
     if saveas is not None:
         plt.savefig(saveas)
     else:
@@ -41,4 +42,4 @@ def show_correlations(data, saveas=None):
 if __name__ == '__main__':
     import pandas as pd
     data = pd.read_csv('data/games.csv', index_col=0)
-    show_correlations(data)
+    show_correlations(data, saveas='visualization/correlations.png')
