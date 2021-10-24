@@ -8,10 +8,12 @@ Created: 9-30-2021
 from datetime import datetime
 
 import pandas as pd
-import sklearn
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import KFold
 
-from team_based_game import TEAM_ABBREVIATIONS
+from build_dataset import TEAM_ABBREVIATIONS
 TEAM_ABBREVIATIONS += ['BRK', 'CHO', 'NOP']
 
 class NBADataPipeline():
@@ -111,12 +113,12 @@ class NBADataPipeline():
         # Make list of preprocessing elements in pipeline
         pipeline_components = []
         if scale_data:
-            scaler = sklearn.preprocessing.StandardScaler()
+            scaler = StandardScaler()
             pipeline_components.append(('Standard Scaler', scaler))
         if use_pca:
-            pca = sklearn.decomposition.PCA(pca_components)
+            pca = PCA(pca_components)
             pipeline_components.append(('PCA', pca))
-        return sklearn.pipeline.Pipeline(pipeline_components)
+        return Pipeline(pipeline_components)
 
     def fit_pipeline(self):
         """Fit the pipeline to all the training data and pre-process test data"""
@@ -127,7 +129,7 @@ class NBADataPipeline():
     def yield_kfolds(self, k):
         """Yield k folds for cross validation"""
         # Build KFold sklearn object
-        kf = sklearn.model_selection.KFold(n_splits=k)
+        kf = KFold(n_splits=k)
         # For each fold, preprocess data and then yield it
         for train_indices, test_indices in kf.split(self._X):
             # Grab train and test data and labels

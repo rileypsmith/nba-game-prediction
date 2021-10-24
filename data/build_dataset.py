@@ -237,7 +237,7 @@ def label_home_team(data_csv, output_csv=None):
     """
     Loop through the data and add home team and away team columns retrospectively.
     """
-    if output_csv = None:
+    if output_csv is None:
         output_csv = data_csv
     existing_data = pd.read_csv(data_csv, index_col=0)
     # Set new columns
