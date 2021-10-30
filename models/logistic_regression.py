@@ -1,14 +1,14 @@
 """
-A random forest classifier for predicting the outcome of NBA games.
+A logistic regression classifier for predicting the outcome of NBA games.
 
 @author: Riley Smith
-Created: 8-18-2021
+Created: 10-21-2021
 """
 import json
 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.ensemble import RandomForestClassifier as Forest
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn import metrics
 from tqdm import tqdm
@@ -21,9 +21,8 @@ sys.path.append('../visualization')
 from data_pipeline import NBADataPipeline
 from roc_curve import plot_roc, plot_kfolds_roc
 
-# Build random forest classifier
-clf = Forest(n_estimators=200, min_samples_split=0.05, min_samples_leaf=0.01,
-                criterion='entropy')
+# Build basic logistic regression classifier
+clf = LogisticRegression()
 
 # Get data
 data_csv = r"C:\Users\thehu\OneDrive\Documents\Code_Projects\nba-game-simulator\data\data.csv"
@@ -58,10 +57,10 @@ grid_search_results = {}
 
 # Set grid search parameters
 params = {
-    'max_depth': [6, 8, None],
-    'n_estimators': [50, 150, 250],
-    'min_samples_split': [0.02, 0.05],
-    'min_samples_leaf': [0.01, 0.05]
+    'penalty': ['l1', 'l2', 'elasticnet', 'none'],
+    'C': [0.5, 1., 2., 4.],
+    'solver': ['saga'],
+    'max_iter': [100, 200],
 }
 
 # Try different values for PCA
@@ -71,8 +70,8 @@ for k in range(10, 110, 10):
     data_pipeline = NBADataPipeline(data_csv, pca_components=k, delete_first_ten=True)
     X, y = data_pipeline.train_data
     # For each PCA value, do a grid search to find best Random Forest parameters
-    forest = Forest()
-    clf = GridSearchCV(forest, params, scoring=fpr_eval, verbose=2)
+    reg = LogisticRegression()
+    clf = GridSearchCV(reg, params, scoring=fpr_eval, verbose=1)
     clf.fit(X, y)
     # Store results
     local_results = {
@@ -91,7 +90,7 @@ for k in grid_search_results:
         'params': d['params'],
         'score': d['score']
     }
-with open('random_forest_best_results.json', 'w+') as file:
+with open('logistic_regression_best_results.json', 'w+') as file:
     json.dump(to_json, file)
 
 ############################################################
@@ -109,7 +108,7 @@ data_pipeline = NBADataPipeline(data_csv, pca_components=best_k, delete_first_te
 data_pipeline.fit_pipeline()
 
 # Built classifier with best parameters
-clf = Forest(**best_params)
+clf = LogisticRegression(**best_params)
 
 # Fit it to the data
 X_train, y_train = data_pipeline.train_data
@@ -130,7 +129,6 @@ for threshold in np.linspace(0, 1, 100):
 fig, ax = plt.subplots(figsize=(6,6))
 ax.set_xlabel('Prediction probability threshold')
 ax.set_ylabel('Accuracy (%)')
-ax.set_title('Random Forest Best Accuracy')
+ax.set_title('Logistic Regression Best Accuracy')
 ax.plot(np.linspace(0, 1, 100), np.array(accuracies) * 100)
-plt.savefig('random_forest_accuracy.png')
 plt.show()

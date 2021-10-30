@@ -147,7 +147,7 @@ or pick the most important features in the data by looking at the actual coeffic
 in the most important principal components. These methods of dimensionality reduction
 may yield better results than PCA.
 
-#### Setting up and Training Models
+## Setting up and Training Models
 
 All the models considered in this analysis are "out of the box" machine learning
 classifiers from Scikit Learn. The methodology for training them is straightforward.
@@ -156,7 +156,8 @@ validation function (discussed below). The models considered so far are:
 - Random forest
 - Logistic regression
 
-**Custom evaluation functions**  
+#### Custom evaluation functions
+
 Two custom evaluation functions are used. The first one targets the best possible
 true positive rate for a fixed tolerable false positive rate. The intuition for
 this evaluation is straightforward: the fixed false positive rate represents the
@@ -176,7 +177,8 @@ evaluation method is used to determine our model's effectiveness under a more
 realistic operating condition where we choose a fixed probability threshold for
 calling a game.
 
-**Choosing best parameters**  
+#### Choosing best parameters
+
 Best parameters for each model are chosen with Scikit Learn's GridSearchCV. Different
 numbers of retained principal components ranging in multiples of 10 from 10 to 100
 are also tested for each classifier. For each combo of retained principal components
@@ -184,7 +186,8 @@ and parameters, the model is evaluated using 5-fold cross validation over the en
 dataset. The best performing model is chosen according to the first custom
 evaluation function described above.
 
-**Evaluating best model performance**  
+#### Evaluating best model performance
+
 Once the best parameters have been chosen, the final model is evaluated on a
 holdout dataset. This is done as follows: first, the data pipeline is recreated
 with the 2018-2019 season serving as a holdout dataset (this season is chosen just
@@ -193,9 +196,10 @@ data (seasons 2010-11 through 2020-21, except 2018-19) is used to train the
 classifier with the parameters chosen as the best parameters. The model is
 then evaluated only on the holdout data.
 
-#### Results
+## Results
 
-**Random Forest**  
+#### Random Forest
+
 As expected, the random forest classifier is one of the best for this application.
 Interestingly, the best model for the random forest classifier is found to be
 one with 80 principal components retained, though its performance is only marginally
@@ -223,11 +227,42 @@ Now let's see how accurate the model is for different prediction thresholds:
 
 Not bad here either!
 
-**Logistic Regression**
+#### Logistic Regression
+
 Logistic regression does not perform as well for this application as random forest.
 It may be the case that the two classes of data (home team win and away team win)
 are not separable in the feature space. Since logistic regression essentially tries
 to fit a nonlinear decision boundary, it will function best when the classes
 are separable. Still we are able to do much better than the baseline.
 
-![]
+Here's the ROC curve for our logistic regression classifier:
+
+![Logistic Regression ROC Curve](models/logistic_regression_roc.png)
+
+So it does way better than the coin flip baseline. Let's take a look at the
+accuracy for different confidence thresholds:
+
+![Logistic Regression Accuracy](models/logistic_regression_accuracy.png)
+
+Not as good as the random forest, but still not bad.
+
+## Next Steps
+
+With only two machine learning models considered in this analysis, the obvious
+next step is to keep going and try different models. The two models examined here
+where chosen because they are the most fitting choices for this application, but
+it would be worth trying a support vector machine (SVM), Naive Bayes in conjunction
+with kernel density estimation, and particularly a gradient boosting classifier,
+which may perform well for this application. It may even be worth considering a
+simple multi-layer perceptron (MLP), though the available data is somewhat limited for
+deep learning and a MLP would quickly run the risk of overfitting as its number
+of activation units grows.
+
+Another expansion of this project would be to add a way to continue data collection
+over time. The current analysis is based on a dataset that is created once from
+past games. It is purely academic in this sense: more about exploring the data
+for cool insights into NBA games and machine learning than for actually predicting
+the outcome of a real NBA game. But a module to continue to add data could be
+useful if using these models for inference (disclaimer: still intended just for
+fun; I don't consider these models a good basis for sports betting and I
+would discourage anyone from betting on them).

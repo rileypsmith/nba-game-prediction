@@ -9,8 +9,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.decomposition import PCA
 
-# from data.data_pipeline import data_pipeline
-
 import sys
 sys.path.append('../data')
 from data_pipeline import NBADataPipeline

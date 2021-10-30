@@ -91,10 +91,14 @@ class ThresholdedAccuracy():
         # Compute accuracy and weight by number of surviving games
         home_acc = metrics.accuracy_score(home_refined_true, home_refined_pred)
         home_acc *= home_refined_pred.size
+        home_acc = 0 if np.isnan(home_acc) else home_acc
         # Do the same for away
         away_refined_pred = preds[np.where(prob[:,0] > self._threshold)]
         away_refined_true = y[np.where(prob[:,0] > self._threshold)]
         away_acc = metrics.accuracy_score(1 - away_refined_true, away_refined_pred)
         away_acc *= away_refined_pred.size
+        away_acc = 0 if np.isnan(away_acc) else away_acc
         # Return the weighted average
+        if home_refined_pred.size + away_refined_pred.size == 0:
+            return np.nan
         return (home_acc + away_acc) / (home_refined_pred.size + away_refined_pred.size)
