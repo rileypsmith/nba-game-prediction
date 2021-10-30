@@ -81,7 +81,7 @@ percentage are intrinsically linked. We can see below how many of the features
 are correlated, but there are still many uncorrelated features that should
 give us good predictive power.
 
-![Feature Correlation Matrix](visualization/correlations.png)
+![Feature Correlation Matrix](figures/correlations.png)
 (Download the full image to see it in better detail)
 
 #### Feature engineering
@@ -133,7 +133,7 @@ preserving as much of the variance as possible.
 This plot shows the effect of increasing `k` on the explained variance in the
 original dataset:
 
-![Explained Variance](visualization/explained_variance.png)
+![Explained Variance](figures/explained_variance.png)
 
 As we can clearly see, beyond the first 50 principal components, the others
 contribute little to the overall variance in the training dataset. This relatively
@@ -211,7 +211,7 @@ principal components would likely be a better choice.
 
 Let's take a look at the ROC curve for the best performing model:
 
-![Random Forest ROC Curve](models/random_forest_roc.png)
+![Random Forest ROC Curve](figures/random_forest_roc.png)
 
 *Note:* Since the home team winning is the event labeled as a true detection,
 this ROC curve technically only shows our ability to predict the home team winning.
@@ -223,7 +223,7 @@ predict the winner!
 
 Now let's see how accurate the model is for different prediction thresholds:
 
-![Random Forest Accuracy](models/random_forest_accuracy.png)
+![Random Forest Accuracy](figures/random_forest_accuracy.png)
 
 Not bad here either!
 
@@ -237,12 +237,12 @@ are separable. Still we are able to do much better than the baseline.
 
 Here's the ROC curve for our logistic regression classifier:
 
-![Logistic Regression ROC Curve](models/logistic_regression_roc.png)
+![Logistic Regression ROC Curve](figures/logistic_regression_roc.png)
 
 So it does way better than the coin flip baseline. Let's take a look at the
 accuracy for different confidence thresholds:
 
-![Logistic Regression Accuracy](models/logistic_regression_accuracy.png)
+![Logistic Regression Accuracy](figures/logistic_regression_accuracy.png)
 
 Not as good as the random forest, but still not bad.
 
