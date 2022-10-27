@@ -171,13 +171,24 @@ true positive rate for a fixed tolerable false positive rate. The intuition for
 this evaluation is straightforward: the fixed false positive rate represents the
 percentage of the time we are willing to be wrong in predicting a game. With
 that tolerance threshold in place, we seek the model that captures the most games
-correctly subject to that threshold.
+correctly subject to that threshold. Under the hood, this imposes a confidence
+threshold on predictions from our model. Predictions below this confidence threshold
+are ignored. In other words, a model prediction is only counted when the model
+displays sufficient confidence; we seek to maximize the number of correct predictions
+above this confidence threshold subject to a limit on the portion of allowable
+incorrect predictions above this threshold.
 
 A similar, but slightly different evaluation metric is based on getting the best
 possible prediction accuracy above a fixed confidence threshold. This is similar
 to the fixed tolerable false positive rate model evaluation, except in this method,
 we set a minimum probability required to call a game, and then evaluate our model
 based on how accurate it is for predictions above this threshold.
+
+The difference between these two evaluation methods is nuanced. The first is better
+for evaluating our model how we might like it to be used--with a threshold tuned
+to a predetermined performance level. The latter is how the model would actually
+be evaluated on new data. Once the threshold is set, it is fixed, so further evaluation
+deals only with performance relative to a previously chosen threshold.
 
 In practice for this project, the first evaluation method is passed as an argument
 to Scikit Learn's GridSearchCV to find the best model parameters, and the second
@@ -194,15 +205,16 @@ and parameters, the model is evaluated using 5-fold cross validation over the en
 dataset. The best performing model is chosen according to the first custom
 evaluation function described above.
 
-#### Evaluating best model performance
+#### Estimating model generalizability
 
-Once the best parameters have been chosen, the final model is evaluated on a
-holdout dataset. This is done as follows: first, the data pipeline is recreated
-with the 2018-2019 season serving as a holdout dataset (this season is chosen just
-because it was the last completed full NBA season). The rest of the available
-data (seasons 2010-11 through 2020-21, except 2018-19) is used to train the
-classifier with the parameters chosen as the best parameters. The model is
-then evaluated only on the holdout data.
+Once the best parameters have been chosen, the final model is evaluated on a true
+holdout dataset. The holdout dataset for all reported performance metrics in this
+analysis is the 2018-2019 NBA season (chosen because it was the most recently completed
+full NBA season at the time of this analysis; 2019-2020 and 2020-2021 seasons were 
+shortened due to Covid-19). Using a holdout dataset does reduce the amount of data
+available for training (no data from the 2018-2019 season may be used for training
+models or parameter selection), but it gives us a fair estimate of what kind of
+performance we might expect on new data.
 
 ## Results
 
