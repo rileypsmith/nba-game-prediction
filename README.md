@@ -66,7 +66,7 @@ Because of this, data collection is slow. There are over 20 API calls for each
 game (for all the players that played in that game), so the data for each game
 takes a while to collect. It therefore becomes important to store the data locally
 so it can be retrieved much faster during training and inference. To store data
-locally, I opted for creating and hdf5 file to hold the data, but something like
+locally, I opted for creating an hdf5 file for easy key-based indexing, but something like
 a SQL database or even a large CSV file could work also.
 
 #### Team level data
@@ -124,7 +124,15 @@ rather than to estimate the true effects between independent and dependent
 variables. But there are still things we can do to reduce the dimensionality of
 the dataset while preserving its predictive power.
 
-For this project, the only dimensionality reduction technique used is PCA.
+For this project, I decided to keep things simple. Rather than attempting to 
+optimally subselect features (an interesting and non-trivial problem in and of itself), 
+I opted instead to simply apply prinicpal component analysis (PCA) for dimensionality 
+reduction. It is worth noting that is not necessarily optimal; some machine learning 
+methods (tree-based methods in particular) can be susceptible to performance losses 
+from including weak, noisy, or otherwise useless features. It is likely that some 
+subset of the 228 available features could be used to outperform simple PCA 
+dimensionality reduction, but that analysis is not considered here.
+
 PCA (principal component analysis) successively finds principal components&mdash;linear
 combinations of features that are orthogonal to one another. By taking the top
 `k` principal components, we can reduce the dimensionality of the dataset while
