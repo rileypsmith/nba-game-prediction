@@ -13,3 +13,7 @@ __pycache__
 
 Random Data Script for testing things
 data/data.py
+
+Trained models
+*.joblib
+*.pkl

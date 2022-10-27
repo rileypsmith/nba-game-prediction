@@ -126,6 +126,10 @@ class NBADataPipeline():
         if self._X_test is not None:
             self._X_test = self._pipeline.transform(self._X_test)
 
+    def preprocess(self, X):
+        """Preprocess the incoming data for inference"""
+        return self._pipeline.transform(X)
+
     def yield_kfolds(self, k):
         """Yield k folds for cross validation"""
         # Build KFold sklearn object
@@ -159,3 +163,8 @@ class NBADataPipeline():
         if self._X_test is not None:
             return self._X_test, self._y_test
         return None
+
+    @property
+    def pipeline(self):
+        """Return the actual Sklearn pipeline instance"""
+        return self._pipeline

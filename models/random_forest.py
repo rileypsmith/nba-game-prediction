@@ -4,7 +4,10 @@ A random forest classifier for predicting the outcome of NBA games.
 @author: Riley Smith
 Created: 8-18-2021
 """
+import joblib
 import json
+from pathlib import Path
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,9 +18,11 @@ from tqdm import tqdm
 
 import evaluation as eval
 
-import sys
-sys.path.append('../data')
-sys.path.append('../visualization')
+if not str(Path(Path(__file__).absolute().parent.parent, 'data')):
+    sys.path.append(str(Path(Path(__file__).absolute().parent.parent, 'data')))
+if not str(Path(Path(__file__).absolute().parent.parent, 'visualization')):
+    sys.path.append(str(Path(Path(__file__).absolute().parent.parent, 'visualization')))
+
 from data_pipeline import NBADataPipeline
 from roc_curve import plot_roc, plot_kfolds_roc
 
@@ -134,3 +139,27 @@ ax.set_title('Random Forest Best Accuracy')
 ax.plot(np.linspace(0, 1, 100), np.array(accuracies) * 100)
 plt.savefig('random_forest_accuracy.png')
 plt.show()
+
+############################################################
+#                  Saving the best model                   #
+############################################################
+
+best_params = {"max_depth": 8, "min_samples_leaf": 0.01, "min_samples_split": 0.02, "n_estimators": 150}
+best_k = 80
+# Let's go ahead and fit our best model to all the data and save it for inference
+
+# Build data pipeline
+data_pipeline = NBADataPipeline(data_csv, pca_components=best_k, delete_first_ten=True)
+data_pipeline.fit_pipeline()
+
+# Build classifier
+clf = Forest(**best_params)
+
+# Fit it to the data
+X_train, y_train = data_pipeline.train_data
+clf.fit(X_train, y_train)
+
+# Save it (along with preprocessing pipeline)
+pipe = data_pipeline.pipeline
+pipe.steps.append(clf)
+joblib.dump(pipe, 'random_forest.joblib')
